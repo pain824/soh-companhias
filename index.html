@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleight of Hand - Arquivo Confidencial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-base: #07080a;
+      --bg-surface: #101218;
+      --bg-surface-hover: #171a23;
+      --border-light: rgba(212, 175, 55, 0.15);
+      --border-focus: rgba(212, 175, 55, 0.5);
+      --accent-gold: #d4af37;
+      --accent-gold-glow: rgba(212, 175, 55, 0.3);
+      --accent-red: #8b0000;
+      --text-main: #ededed;
+      --text-muted: #7a7e8e;
+      --tier-s: #e6c200;
+      --tier-a: #2ecc71;
+      --tier-b: #3498db;
+      --tier-c: #e67e22;
+      --tier-d: #e74c3c;
+      --glass-bg: rgba(16, 18, 24, 0.6);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Fundo de Cartas (Watermark) */
+    body::before {
+      content: '♠ ♥ ♣ ♦ ♠ ♥ ♣ ♦ ♠ ♥ ♣ ♦';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      font-size: 12vw;
+      color: rgba(255, 255, 255, 0.015);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      gap: 5vw;
+      z-index: -1;
+      pointer-events: none;
+      transform: rotate(-10deg) scale(1.5);
+    }
+
+    /* Gradiente Radial para iluminação do fundo */
+    .glow-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 50% 0%, rgba(139, 0, 0, 0.08), transparent 60%),
+                  radial-gradient(circle at 50% 100%, rgba(212, 175, 55, 0.05), transparent 50%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Cabeçalho */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeDown 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .logo-suits {
+      font-size: 1.5rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.8rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 15px var(--accent-gold-glow);
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 span { color: var(--accent-gold); }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    /* Barra de Pesquisa */
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 3rem;
+      animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+      opacity: 0;
+    }
+
+    .search-wrapper input {
+      width: 100%;
+      padding: 1.2rem 1.5rem 1.2rem 3.5rem;
+      background: rgba(16, 18, 24, 0.8);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 1.05rem;
+      font-family: 'Inter', sans-serif;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .search-wrapper input:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 20px var(--accent-gold-glow), 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-gold);
+      font-size: 1.2rem;
+    }
+
+    /* Seções de Companhia (Acordeão) */
+    .company-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Variação de delay para entrada em cascata */
+    .company-section:nth-child(1) { animation-delay: 0.3s; }
+    .company-section:nth-child(2) { animation-delay: 0.4s; }
+    .company-section:nth-child(3) { animation-delay: 0.5s; }
+    .company-section:nth-child(4) { animation-delay: 0.6s; }
+    .company-section:nth-child(5) { animation-delay: 0.7s; }
+
+    .company-section:hover {
+      border-color: var(--border-focus);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    }
+
+    .company-header {
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+      user-select: none;
+    }
+
+    .company-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .toggle-arrow {
+      font-size: 1rem;
+      color: var(--text-muted);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .company-section.open .toggle-arrow {
+      transform: rotate(180deg);
+      color: var(--accent-gold);
+    }
+
+    /* Grid Trick para animação smooth de altura */
+    .table-container {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .company-section.open .table-container {
+      grid-template-rows: 1fr;
+    }
+
+    .table-inner {
+      overflow: hidden;
+    }
+
+    /* Tabela */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.2);
+    }
+
+    tr {
+      transition: background 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-surface-hover);
+    }
+
+    .nick-col {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+
+    .overall-col {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    /* Tiers */
+    .tier {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      display: inline-block;
+      text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    .tier-S { color: var(--tier-s); background: rgba(230, 194, 0, 0.1); border: 1px solid rgba(230, 194, 0, 0.3); }
+    .tier-A { color: var(--tier-a); background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); }
+    .tier-B { color: var(--tier-b); background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.3); }
+    .tier-C { color: var(--tier-c); background: rgba(230, 126, 34, 0.1); border: 1px solid rgba(230, 126, 34, 0.3); }
+    .tier-D { color: var(--tier-d); background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); }
+
+    .trend-up { color: #2ecc71; }
+    .trend-down { color: #e74c3c; }
+    .trend-flat { color: #95a5a6; }
+
+    /* Dossiê Lateral (Glassmorphism) */
+    .drawer-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(5px);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .drawer-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0; right: -500px;
+      width: 100%;
+      max-width: 450px;
+      height: 100vh;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border-light);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      z-index: 100;
+      padding: 3rem 2.5rem;
+      transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+
+    .drawer.open { right: 0; }
+
+    .drawer-close {
+      position: absolute;
+      top: 1.5rem; right: 1.5rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .drawer-close:hover {
+      color: var(--text-main);
+      transform: scale(1.1);
+    }
+
+    .dossier-header {
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .dossier-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent-red);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .dossier-nick {
+      font-family: 'Cinzel', serif;
+      font-size: 2.5rem;
+      color: var(--accent-gold);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .dossier-nick:hover::after {
+      content: 'COPIAR';
+      position: absolute;
+      top: 50%; right: -60px;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.8);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: white;
+      pointer-events: none;
+    }
+
+    .dossier-stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: rgba(0,0,0,0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      flex: 1;
+      text-align: center;
+    }
+
+    .stat-box .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-box .lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 0.3rem;
+    }
+
+    .dossier-section {
+      margin-bottom: 1.5rem;
+    }
+    .dossier-section h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .dossier-section p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #ccc;
+      background: rgba(0,0,0,0.2);
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 2px solid var(--border-focus);
+    }
+
+    /* Toast (Aviso Copiado) */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--accent-gold);
+      color: #000;
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 1rem;
+      border-top: 1px solid rgba(255,255,255,0.02);
+      margin-top: auto;
+      opacity: 0;
+      animation: fadeUp 1s 0.8s forwards;
+    }
+    footer p {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    footer .footer-suits {
+      color: var(--accent-gold);
+      font-size: 1rem;
+      letter-spacing: 1rem;
+      opacity: 0.3;
+    }
+
+    /* Keyframes */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Ocultar elementos via JS de forma suave */
+    .hidden { display: none !important; }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      h1 { font-size: 2.5rem; }
+      th, td { padding: 1rem; }
+      .drawer { max-width: 100%; right: -100%; }
+      .company-header { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-bg"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo-suits">♠ ♥ ♣ ♦</div>
+      <h1>Sleight of <span>Hand</span></h1>
+      <p class="subtitle">Arquivo Confidencial — Acesso Restrito</p>
+    </header>
+
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar por nick..." autocomplete="off">
+    </div>
+
+    <main id="companies-container">
+      <!-- Tabelas geradas via JS -->
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Sleight of Hand. Confidencial.</p>
+    <div class="footer-suits">♠ ♥ ♣ ♦</div>
+  </footer>
+
+  <!-- Drawer (Dossiê) -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="dossierDrawer">
+    <button class="drawer-close" id="closeDrawer">✕</button>
+    <div class="dossier-header">
+      <div class="dossier-label">Dossiê do Membro</div>
+      <h2 class="dossier-nick" id="dossierNick" onclick="copyNick()">Nick</h2>
+      <div style="color: var(--text-muted); font-size: 0.8rem;">Clique no nome para copiar</div>
+    </div>
+    
+    <div class="dossier-stats">
+      <div class="stat-box">
+        <div class="val" id="dossierOverall">00</div>
+        <div class="lbl">Overall</div>
+      </div>
+      <div class="stat-box">
+        <div class="val" id="dossierTier">-</div>
+        <div class="lbl">Tier</div>
+      </div>
+    </div>
+
+    <div class="dossier-section">
+      <h4>Qualidades</h4>
+      <p id="dossierQualidades">-</p>
+    </div>
+    <div class="dossier-section">
+      <h4>Defeitos</h4>
+      <p id="dossierDefeitos">-</p>
+    </div>
+    <div class="dossier-section">
+      <h4>Observações do Alto Comando</h4>
+      <p id="dossierObs">-</p>
+    </div>
+  </aside>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">Nick copiado para a área de transferência!</div>
+
+  <script>
+    // --- DADOS COM SISTEMA DE TIERS ---
+    const companhiasData = [
+      {
+        nome: "1ª Companhia (Elite)",
+        membros: [
+          { nick: "Pain", overall: 99, tier: "S+", tendencia: "up", qualidades: "Liderança impecável, mira absoluta.", defeitos: "Avança sozinho sob pressão.", obs: "Manter o ritmo, peça fundamental." },
+          { nick: "ShadowK", overall: 96, tier: "S", tendencia: "up", qualidades: "Movimentação perfeita, evasão.", defeitos: "Comunicação falha.", obs: "Melhorar callouts no Discord." },
+          { nick: "Viper", overall: 94, tier: "S-", tendencia: "flat", qualidades: "Estratégia pura, sangue frio.", defeitos: "Tempo de reação caindo.", obs: "Realizar treinos de reflexo." }
+        ]
+      },
+      {
+        nome: "2ª Companhia (Assalto)",
+        membros: [
+          { nick: "Ghost", overall: 89, tier: "A+", tendencia: "up", qualidades: "Agressividade controlada.", defeitos: "Teimosia nas rotações.", obs: "Pronto para subir pra 1ª Cia." },
+          { nick: "Bullet", overall: 85, tier: "A", tendencia: "down", qualidades: "Precisão a médias distâncias.", defeitos: "Pânico em CQC (curto alcance).", obs: "Focar em combates próximos." },
+          { nick: "Spectre", overall: 82, tier: "A-", tendencia: "flat", qualidades: "Obediência tática.", defeitos: "Falta de iniciativa.", obs: "Incentivar tomada de decisões." }
+        ]
+      },
+      {
+        nome: "3ª Companhia (Suporte)",
+        membros: [
+          { nick: "Doc", overall: 78, tier: "B+", tendencia: "up", qualidades: "Sinergia com o time.", defeitos: "Mira inconsistente.", obs: "Treino de tracking de mira." },
+          { nick: "Fixer", overall: 75, tier: "B", tendencia: "flat", qualidades: "Rápido no loot/economia.", defeitos: "Posicionamento vulnerável.", obs: "Ajustar senso de mapa." },
+          { nick: "Rook", overall: 72, tier: "B-", tendencia: "down", qualidades: "Aguenta pressão.", defeitos: "Tilt fácil.", obs: "Acompanhamento psicológico in-game." }
+        ]
+      },
+      {
+        nome: "4ª Companhia (Novatos)",
+        membros: [
+          { nick: "Spike", overall: 68, tier: "C+", tendencia: "up", qualidades: "Vontade de aprender.", defeitos: "Erros básicos mecânicos.", obs: "Revisar fundamentos." },
+          { nick: "Iron", overall: 65, tier: "C", tendencia: "flat", qualidades: "Presente em todos os treinos.", defeitos: "Lentidão nas ações.", obs: "Acelerar ritmo de jogo." },
+          { nick: "Rust", overall: 62, tier: "C-", tendencia: "flat", qualidades: "Fiel às calls.", defeitos: "Mecânica travada.", obs: "Treino intensivo de movimento." }
+        ]
+      },
+      {
+        nome: "5ª Companhia (Reserva/Teste)",
+        membros: [
+          { nick: "Newbie", overall: 55, tier: "D+", tendencia: "up", qualidades: "Boa comunicação inicial.", defeitos: "Inexperiência total.", obs: "Período probatório." },
+          { nick: "Slug", overall: 50, tier: "D", tendencia: "down", qualidades: "Calmo.", defeitos: "Não escuta as calls.", obs: "Último aviso antes do corte." },
+          { nick: "AFK", overall: 45, tier: "D-", tendencia: "down", qualidades: "Nenhuma notável.", defeitos: "Ausente nos treinos.", obs: "Possível expulsão esta semana." }
+        ]
+      }
+    ];
+
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
+    const container = document.getElementById('companies-container');
+
+    function getTrendIcon(trend) {
+      if (trend === 'up') return '<span class="trend-up">▲</span>';
+      if (trend === 'down') return '<span class="trend-down">▼</span>';
+      return '<span class="trend-flat">▬</span>';
+    }
+
+    function getTierClass(tier) {
+      if (tier.startsWith('S')) return 'tier-S';
+      if (tier.startsWith('A')) return 'tier-A';
+      if (tier.startsWith('B')) return 'tier-B';
+      if (tier.startsWith('C')) return 'tier-C';
+      if (tier.startsWith('D')) return 'tier-D';
+      return '';
+    }
+
+    function renderData(filtro = '') {
+      container.innerHTML = '';
+      const query = filtro.toLowerCase();
+
+      companhiasData.forEach((cia, index) => {
+        const membrosFiltrados = cia.membros.filter(m => m.nick.toLowerCase().includes(query));
+        
+        if (membrosFiltrados.length === 0) return;
+
+        // Se houver pesquisa, abre as abas automaticamente
+        const isOpen = query !== '' || index === 0;
+
+        const section = document.createElement('section');
+        section.className = `company-section ${isOpen ? 'open' : ''}`;
+        
+        let tbodyHtml = membrosFiltrados.map(m => `
+          <tr onclick='openDrawer(${JSON.stringify(m)})'>
+            <td class="nick-col">${m.nick}</td>
+            <td class="overall-col">${m.overall}</td>
+            <td><span class="tier ${getTierClass(m.tier)}">${m.tier}</span></td>
+            <td>${getTrendIcon(m.tendencia)}</td>
+          </tr>
+        `).join('');
+
+        section.innerHTML = `
+          <div class="Desenvolvi uma versão completamente refatorada, focada em **Glassmorphism** (efeito de vidro) com um tema escuro e moderno, ideal para destacar rankings. O código agora é dinâmico (JavaScript), o que facilita a adição de novas companhias e a manutenção do sistema de tiers.
+
+Crie um arquivo `index.html` e cole o código abaixo. Ele já contém o HTML, CSS e JavaScript integrados.
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de Companhias</title>
+    <style>
+        /* Variáveis de Tema */
+        :root {
+            --bg-color: #0f0f13;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --tier-s: #ff4757;
+            --tier-a: #2ed573;
+            --tier-b: #1e90ff;
+            --tier-c: #ffa502;
+            --tier-d: #747d8c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fundo Animado com Cartas */
+        .background-cards {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(3px);
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Cabeçalho */
+        header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            animation: fadeInDown 1s ease forwards;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Container Principal */
+        main {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        /* Lista de Companhias */
+        .company-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .company-card {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .company-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Sistema de Tiers */
+        .tier-badge {
